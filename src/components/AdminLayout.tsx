@@ -1,26 +1,30 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Users, Megaphone, Bell, BarChart3, DollarSign, MessageSquare, ChevronLeft, Menu, X, Zap } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, Bell, BarChart3, DollarSign, MessageSquare, ChevronLeft, Menu, X, Dumbbell, UtensilsCrossed, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const adminNav = [
   { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/admin/users", icon: Users, label: "Users" },
+  { to: "/admin/workouts", icon: Dumbbell, label: "Workouts" },
+  { to: "/admin/meals", icon: UtensilsCrossed, label: "Meals" },
+  { to: "/admin/music", icon: Music, label: "Music" },
   { to: "/admin/announcements", icon: Megaphone, label: "Announcements" },
-  { to: "/admin/push", icon: Bell, label: "Push Notifications" },
-  { to: "/admin/analytics", icon: BarChart3, label: "App Analytics" },
+  { to: "/admin/push", icon: Bell, label: "Push" },
+  { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { to: "/admin/revenue", icon: DollarSign, label: "Revenue" },
   { to: "/admin/feedback", icon: MessageSquare, label: "Feedback" },
 ];
 
 const AdminLayout: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (!user || user.email !== "bulegafarid@gmail.com") {
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><p className="text-muted-foreground">Loading...</p></div>;
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">

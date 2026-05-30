@@ -10,6 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight, Dumbbell, Flame, Swords, Wind, Scale, Heart, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const goals = [
   { id: "bodybuilding", label: "Bodybuilding", icon: Dumbbell },
@@ -41,7 +43,7 @@ const OnboardingScreen: React.FC = () => {
     notifs: ["Workout reminders", "Meal reminders", "Achievement alerts"] as string[],
   });
   const [loading, setLoading] = useState(false);
-  const { user, setUser } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const step = steps[stepIndex];
   const progress = ((stepIndex + 1) / steps.length) * 100;
@@ -68,12 +70,22 @@ const OnboardingScreen: React.FC = () => {
   const back = () => { if (stepIndex > 0) setStepIndex(i => i - 1); };
 
   const finish = async () => {
+    if (!user) { navigate("/login"); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 4000));
-    if (user) {
-      localStorage.setItem(`fitai-onboarded-${user.email}`, "true");
-      setUser({ ...user, onboarded: true });
-    }
+    const dietary = data.dietaryOther
+      ? [...data.dietary, data.dietaryOther]
+      : data.dietary;
+    const { error } = await supabase.from("profiles").update({
+      display_name: data.name,
+      goal: data.goal,
+      country: data.country,
+      budget: data.budget,
+      dietary,
+      onboarded: true,
+    }).eq("id", user.id);
+    if (error) { toast.error(error.message); setLoading(false); return; }
+    await new Promise(r => setTimeout(r, 1500));
+    await refreshProfile();
     navigate("/dashboard");
   };
 
