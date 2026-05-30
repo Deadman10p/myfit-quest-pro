@@ -139,7 +139,6 @@ const WorkoutScreen: React.FC = () => {
         xp_earned: xp,
       });
       if (completed) {
-        await supabase.rpc("noop_xp" as any).catch(() => {});
         const { data: prof } = await supabase.from("profiles").select("xp").eq("id", user.id).maybeSingle();
         await supabase.from("profiles").update({ xp: (prof?.xp ?? 0) + xp }).eq("id", user.id);
         toast.success(`Workout complete! +${xp} XP 🔥`);
