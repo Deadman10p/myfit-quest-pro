@@ -30,23 +30,29 @@ import AdminPush from "@/pages/admin/AdminPush";
 import AdminAnalytics from "@/pages/admin/AdminAnalytics";
 import AdminRevenue from "@/pages/admin/AdminRevenue";
 import AdminFeedback from "@/pages/admin/AdminFeedback";
+import AdminWorkouts from "@/pages/admin/AdminWorkouts";
+import AdminMeals from "@/pages/admin/AdminMeals";
+import AdminMusic from "@/pages/admin/AdminMusic";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, profile, loading } = useAuth();
+
+  if (loading) return <SplashScreen />;
+
+  const needsOnboarding = user && profile && !profile.onboarded;
 
   return (
     <Routes>
-      <Route path="/" element={<SplashScreen />} />
+      <Route path="/" element={user ? <Navigate to={needsOnboarding ? "/onboarding" : "/dashboard"} /> : <SplashScreen />} />
       <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginScreen />} />
       <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <SignupScreen />} />
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
       <Route path="/onboarding" element={user ? <OnboardingScreen /> : <Navigate to="/login" />} />
 
-      {/* Main app routes */}
-      <Route element={user ? <AppLayout /> : <Navigate to="/login" />}>
+      <Route element={user ? (needsOnboarding ? <Navigate to="/onboarding" /> : <AppLayout />) : <Navigate to="/login" />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/workouts" element={<WorkoutScreen />} />
         <Route path="/nutrition" element={<NutritionScreen />} />
@@ -59,10 +65,12 @@ const AppRoutes = () => {
         <Route path="/leaderboard" element={<GamificationScreen />} />
       </Route>
 
-      {/* Admin routes */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="workouts" element={<AdminWorkouts />} />
+        <Route path="meals" element={<AdminMeals />} />
+        <Route path="music" element={<AdminMusic />} />
         <Route path="announcements" element={<AdminAnnouncements />} />
         <Route path="push" element={<AdminPush />} />
         <Route path="analytics" element={<AdminAnalytics />} />

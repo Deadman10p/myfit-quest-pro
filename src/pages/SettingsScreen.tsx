@@ -19,7 +19,7 @@ const themes = [
 
 const SettingsScreen: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const { user, setUser } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [gymPref, setGymPref] = useState(true);
   const [birthday, setBirthday] = useState(true);
@@ -27,8 +27,8 @@ const SettingsScreen: React.FC = () => {
     workouts: true, meals: true, achievements: true, streaks: true, challenges: true, weekly: true,
   });
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    await signOut();
     navigate("/");
   };
 
