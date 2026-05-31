@@ -1,8 +1,9 @@
 import React from "react";
 import { NavLink as RouterNavLink, useLocation, Outlet } from "react-router-dom";
-import { Home, Dumbbell, UtensilsCrossed, MessageCircle, TrendingUp, Bell } from "lucide-react";
+import { Home, Dumbbell, UtensilsCrossed, MessageCircle, TrendingUp, Bell, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/contexts/NotificationContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { to: "/dashboard", icon: Home, label: "Home" },
@@ -15,6 +16,7 @@ const navItems = [
 const AppLayout: React.FC = () => {
   const location = useLocation();
   const { unreadCount } = useNotifications();
+  const { isAdmin } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -23,14 +25,21 @@ const AppLayout: React.FC = () => {
         <h1 className="text-lg font-bold text-foreground">
           Fit<span className="text-primary">AI</span>
         </h1>
-        <RouterNavLink to="/notifications" className="relative p-2 rounded-lg hover:bg-secondary touch-target" aria-label={`Notifications, ${unreadCount} unread`}>
-          <Bell className="w-5 h-5 text-foreground" />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
+        <div className="flex items-center gap-1">
+          {isAdmin && (
+            <RouterNavLink to="/admin" className="p-2 rounded-lg hover:bg-secondary touch-target" aria-label="Admin panel">
+              <Shield className="w-5 h-5 text-primary" />
+            </RouterNavLink>
           )}
-        </RouterNavLink>
+          <RouterNavLink to="/notifications" className="relative p-2 rounded-lg hover:bg-secondary touch-target" aria-label={`Notifications, ${unreadCount} unread`}>
+            <Bell className="w-5 h-5 text-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </RouterNavLink>
+        </div>
       </header>
 
       {/* Content */}
