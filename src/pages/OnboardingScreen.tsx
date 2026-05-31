@@ -84,7 +84,12 @@ const OnboardingScreen: React.FC = () => {
       onboarded: true,
     }).eq("id", user.id);
     if (error) { toast.error(error.message); setLoading(false); return; }
-    await new Promise(r => setTimeout(r, 1500));
+    // Kick off initial AI plan generation (workout + meal plan). Wait so first dashboard load has data.
+    try {
+      await supabase.functions.invoke("ai-generate-plan", { body: { adapt: false } });
+    } catch (e) {
+      console.warn("Initial plan generation failed, will retry on dashboard", e);
+    }
     await refreshProfile();
     navigate("/dashboard");
   };
