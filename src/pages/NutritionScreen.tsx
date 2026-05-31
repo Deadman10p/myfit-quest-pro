@@ -30,7 +30,7 @@ const NutritionScreen: React.FC = () => {
     const { data } = await supabase
       .from("meal_plans").select("*").eq("user_id", user.id)
       .order("week_start", { ascending: false }).limit(1).maybeSingle();
-    setDays((data?.days as PlanDay[]) ?? []);
+    setDays(((data?.days as unknown) as PlanDay[]) ?? []);
     setLoading(false);
   };
 
