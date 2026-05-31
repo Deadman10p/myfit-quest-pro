@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Play, Check, SkipForward, ThumbsDown, ThumbsUp, Home, Building2, Volume2, VolumeX, X, Dumbbell } from "lucide-react";
+import { Play, Check, SkipForward, ThumbsDown, ThumbsUp, Home, Building2, Volume2, VolumeX, X, Dumbbell, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,24 +75,43 @@ const WorkoutScreen: React.FC = () => {
   const [voiceOn, setVoiceOn] = useState(true);
   const [sessionStart, setSessionStart] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const restTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const loadWorkouts = async (env: string) => {
+    const { data: ws } = await supabase
+      .from("workouts")
+      .select("*, exercises(*)")
+      .or(`environment.eq.${env},environment.eq.any`)
+      .eq("is_published", true)
+      .order("created_at", { ascending: false });
+    const sorted = (ws ?? []).map((w: any) => ({
+      ...w,
+      exercises: (w.exercises ?? []).sort((a: Exercise, b: Exercise) => a.position - b.position),
+    }));
+    setWorkouts(sorted as Workout[]);
+  };
+
+  const generateAIWorkout = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-generate-workout", {
+        body: { environment: gymMode ? "gym" : "home", duration_min: 45 },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("Your AI workout is ready! 🔥");
+      await loadWorkouts(gymMode ? "gym" : "home");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to generate workout");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      const env = gymMode ? "gym" : "home";
-      const { data: ws } = await supabase
-        .from("workouts")
-        .select("*, exercises(*)")
-        .or(`environment.eq.${env},environment.eq.any`)
-        .eq("is_published", true);
-      const sorted = (ws ?? []).map((w: any) => ({
-        ...w,
-        exercises: (w.exercises ?? []).sort((a: Exercise, b: Exercise) => a.position - b.position),
-      }));
-      setWorkouts(sorted as Workout[]);
-      setLoading(false);
-    };
-    load();
+    setLoading(true);
+    loadWorkouts(gymMode ? "gym" : "home").finally(() => setLoading(false));
   }, [gymMode]);
 
   const activeEx = selected?.exercises[activeIdx];
@@ -282,13 +301,17 @@ const WorkoutScreen: React.FC = () => {
         </div>
       </div>
 
+      <Button onClick={generateAIWorkout} disabled={generating} className="w-full touch-target btn-primary-gradient text-primary-foreground font-semibold">
+        <Sparkles className="w-4 h-4 mr-2" /> {generating ? "Generating your workout..." : "Generate AI Workout"}
+      </Button>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading workouts...</p>
       ) : workouts.length === 0 ? (
         <div className="bg-card rounded-xl p-8 border border-border text-center">
           <Dumbbell className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No {gymMode ? "gym" : "home"} workouts available yet.</p>
-          <p className="text-xs text-muted-foreground mt-1">Admins can add workouts from the admin panel.</p>
+          <p className="text-sm text-muted-foreground">No {gymMode ? "gym" : "home"} workouts yet.</p>
+          <p className="text-xs text-muted-foreground mt-1">Tap "Generate AI Workout" to create one tailored to your goals.</p>
         </div>
       ) : (
         workouts.map((w) => (
