@@ -29,7 +29,9 @@ const AppLayout: React.FC = () => {
           Fit<span className="text-primary">AI</span>
         </h1>
         <div className="flex items-center gap-1">
+          <MusicPlayer compact />
           {isAdmin && (
+
             <RouterNavLink to="/admin" className="p-2 rounded-lg hover:bg-secondary touch-target" aria-label="Admin panel">
               <Shield className="w-5 h-5 text-primary" />
             </RouterNavLink>
