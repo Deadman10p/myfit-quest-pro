@@ -219,10 +219,14 @@ const WorkoutScreen: React.FC = () => {
             </div>
             <p className="text-[10px] text-muted-foreground mt-1 text-center">{activeIdx + 1}/{selected.exercises.length} • {selected.title}</p>
           </div>
-          <button onClick={() => setVoiceOn((v) => !v)} className="touch-target" aria-label={voiceOn ? "Mute voice" : "Unmute voice"}>
-            {voiceOn ? <Volume2 className="w-5 h-5 text-primary" /> : <VolumeX className="w-5 h-5 text-muted-foreground" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <MusicPlayer compact />
+            <button onClick={() => setVoiceOn((v) => !v)} className="touch-target" aria-label={voiceOn ? "Mute voice" : "Unmute voice"}>
+              {voiceOn ? <Volume2 className="w-5 h-5 text-primary" /> : <VolumeX className="w-5 h-5 text-muted-foreground" />}
+            </button>
+          </div>
         </div>
+
 
         {/* Video */}
         <div className="relative aspect-video bg-black">
