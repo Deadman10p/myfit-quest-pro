@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
 
     const { adapt = false } = await req.json().catch(() => ({}));
 
+
     const [{ data: profile }, { data: sessions }, { data: metrics }] = await Promise.all([
       userClient.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       userClient.from('workout_sessions').select('*').eq('user_id', user.id).order('started_at', { ascending: false }).limit(10),
@@ -40,6 +41,10 @@ Deno.serve(async (req) => {
     const bodySummary = metrics?.length
       ? `Latest weight: ${metrics[0].weight_kg ?? 'n/a'}kg, body fat: ${metrics[0].body_fat_pct ?? 'n/a'}%.`
       : 'No body metrics logged yet.';
+
+    // Country-specific food research via DuckDuckGo (best-effort, never blocks generation)
+    const foodResearch = profile?.country ? await researchLocalFoods(profile.country) : '';
+
 
     const sys = `You are an adaptive fitness & nutrition coach. Return ONLY JSON:
 {
@@ -70,7 +75,9 @@ JSON only, no prose.`;
 goal=${profile?.goal ?? 'general'}, country=${profile?.country ?? 'unknown'},
 budget/day=${profile?.budget ?? 'unknown'}, dietary=${(profile?.dietary ?? []).join(', ') || 'none'}.
 ${perfSummary}
-${bodySummary}`;
+${bodySummary}
+${foodResearch ? `Local food research for ${profile?.country} (use these real, locally available & affordable foods):\n${foodResearch}` : ''}`;
+
 
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -136,3 +143,23 @@ ${bodySummary}`;
     return j({ error: (e as Error).message }, 500);
   }
 });
+
+// Best-effort DuckDuckGo research on affordable, locally available foods for a country.
+async function researchLocalFoods(country: string): Promise<string> {
+  try {
+    const q = `common affordable traditional staple foods eaten in ${country} local markets`;
+    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FitAI/1.0)' },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return '';
+    const html = await res.text();
+    const snippets = [...html.matchAll(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g)]
+      .map((m) => m[1].replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter((s) => s.length > 40)
+      .slice(0, 6);
+    return snippets.map((s) => `- ${s}`).join('\n');
+  } catch {
+    return '';
+  }
+}

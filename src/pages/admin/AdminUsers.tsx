@@ -1,30 +1,37 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Ban, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useAdminStats } from "@/hooks/useAdminStats";
 
-const mockUsers = Array.from({ length: 25 }, (_, i) => ({
-  id: `u${i + 1}`,
-  email: `user${i + 1}@example.com`,
-  name: `User ${i + 1}`,
-  subscription: i % 3 === 0 ? "Premium" : "Free",
-  registered: `2024-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
-  country: ["USA", "UK", "Uganda", "India", "Germany"][i % 5],
-  goal: ["Bodybuilding", "Weight Loss", "Calisthenics", "General Fitness"][i % 4],
-  lastActive: `${Math.floor(Math.random() * 24)}h ago`,
-  status: "active" as "active" | "suspended",
-}));
+const ago = (iso: string | null) => {
+  if (!iso) return "never";
+  const h = Math.floor((Date.now() - new Date(iso).getTime()) / 3600000);
+  if (h < 1) return "just now";
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+};
 
 const AdminUsers: React.FC = () => {
+  const { stats, loading, error } = useAdminStats();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const perPage = 10;
 
-  const filtered = mockUsers.filter(u =>
-    u.email.toLowerCase().includes(search.toLowerCase()) || u.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return (stats?.users ?? []).filter(u =>
+      (u.name ?? "").toLowerCase().includes(q) ||
+      (u.country ?? "").toLowerCase().includes(q) ||
+      (u.goal ?? "").toLowerCase().includes(q)
+    );
+  }, [stats, search]);
+
+  if (loading) return <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Loading users…</div>;
+  if (error || !stats) return <p className="text-sm text-destructive">Could not load users: {error}</p>;
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
-  const totalPages = Math.ceil(filtered.length / perPage);
 
   return (
     <div className="space-y-4">
@@ -32,7 +39,7 @@ const AdminUsers: React.FC = () => {
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search users..." className="pl-10 bg-secondary" />
+        <Input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search by name, country or goal..." className="pl-10 bg-secondary" />
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-x-auto">
@@ -43,31 +50,32 @@ const AdminUsers: React.FC = () => {
               <th className="text-left p-3 text-xs text-muted-foreground font-medium hidden sm:table-cell">Plan</th>
               <th className="text-left p-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Country</th>
               <th className="text-left p-3 text-xs text-muted-foreground font-medium hidden lg:table-cell">Goal</th>
-              <th className="text-left p-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Last Active</th>
-              <th className="text-right p-3 text-xs text-muted-foreground font-medium">Actions</th>
+              <th className="text-left p-3 text-xs text-muted-foreground font-medium">XP</th>
+              <th className="text-left p-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Sessions</th>
+              <th className="text-right p-3 text-xs text-muted-foreground font-medium hidden md:table-cell">Last Active</th>
             </tr>
           </thead>
           <tbody>
-            {paged.map(u => (
+            {paged.length === 0 ? (
+              <tr><td colSpan={7} className="p-4 text-center text-muted-foreground text-sm">No users found.</td></tr>
+            ) : paged.map(u => (
               <tr key={u.id} className="border-b border-border last:border-0 hover:bg-secondary/50">
                 <td className="p-3">
-                  <p className="font-medium text-foreground">{u.name}</p>
-                  <p className="text-xs text-muted-foreground">{u.email}</p>
+                  <p className="font-medium text-foreground">{u.name ?? "Unnamed"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    joined {new Date(u.created_at).toLocaleDateString()} {u.onboarded ? "" : "• not onboarded"}
+                  </p>
                 </td>
                 <td className="p-3 hidden sm:table-cell">
-                  <span className={`text-xs px-2 py-0.5 rounded ${u.subscription === "Premium" ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"}`}>
-                    {u.subscription}
+                  <span className={`text-xs px-2 py-0.5 rounded ${u.is_premium ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"}`}>
+                    {u.is_premium ? "Premium" : "Free"}
                   </span>
                 </td>
-                <td className="p-3 text-muted-foreground hidden md:table-cell">{u.country}</td>
-                <td className="p-3 text-muted-foreground hidden lg:table-cell">{u.goal}</td>
-                <td className="p-3 text-muted-foreground hidden md:table-cell">{u.lastActive}</td>
-                <td className="p-3 text-right">
-                  <div className="flex gap-1 justify-end">
-                    <Button variant="outline" size="sm" className="text-xs touch-target"><Ban className="w-3 h-3" /></Button>
-                    <Button variant="outline" size="sm" className="text-xs text-destructive touch-target"><Trash2 className="w-3 h-3" /></Button>
-                  </div>
-                </td>
+                <td className="p-3 text-muted-foreground hidden md:table-cell">{u.country ?? "—"}</td>
+                <td className="p-3 text-muted-foreground hidden lg:table-cell">{u.goal ?? "—"}</td>
+                <td className="p-3 text-foreground">{u.xp}</td>
+                <td className="p-3 text-muted-foreground hidden md:table-cell">{u.sessions}</td>
+                <td className="p-3 text-muted-foreground text-right hidden md:table-cell">{ago(u.last_active)}</td>
               </tr>
             ))}
           </tbody>
@@ -81,7 +89,7 @@ const AdminUsers: React.FC = () => {
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm text-foreground flex items-center">{page}/{totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="touch-target">
+          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="touch-target">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
