@@ -70,7 +70,9 @@ JSON only, no prose.`;
 goal=${profile?.goal ?? 'general'}, country=${profile?.country ?? 'unknown'},
 budget/day=${profile?.budget ?? 'unknown'}, dietary=${(profile?.dietary ?? []).join(', ') || 'none'}.
 ${perfSummary}
-${bodySummary}`;
+${bodySummary}
+${foodResearch ? `Local food research for ${profile?.country} (use these real, locally available & affordable foods):\n${foodResearch}` : ''}`;
+
 
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
