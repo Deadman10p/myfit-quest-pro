@@ -47,10 +47,14 @@ const AppLayout: React.FC = () => {
         </div>
       </header>
 
+      {/* Interactive introduction */}
+      <IntroTour />
+
       {/* Content */}
       <main className="flex-1 overflow-y-auto pb-20">
         <Outlet />
       </main>
+
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-bottom" role="navigation" aria-label="Main navigation">
