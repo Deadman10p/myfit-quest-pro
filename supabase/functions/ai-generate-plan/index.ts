@@ -143,3 +143,23 @@ ${foodResearch ? `Local food research for ${profile?.country} (use these real, l
     return j({ error: (e as Error).message }, 500);
   }
 });
+
+// Best-effort DuckDuckGo research on affordable, locally available foods for a country.
+async function researchLocalFoods(country: string): Promise<string> {
+  try {
+    const q = `common affordable traditional staple foods eaten in ${country} local markets`;
+    const res = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FitAI/1.0)' },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return '';
+    const html = await res.text();
+    const snippets = [...html.matchAll(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g)]
+      .map((m) => m[1].replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter((s) => s.length > 40)
+      .slice(0, 6);
+    return snippets.map((s) => `- ${s}`).join('\n');
+  } catch {
+    return '';
+  }
+}
