@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
 
     const { adapt = false } = await req.json().catch(() => ({}));
 
+
     const [{ data: profile }, { data: sessions }, { data: metrics }] = await Promise.all([
       userClient.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       userClient.from('workout_sessions').select('*').eq('user_id', user.id).order('started_at', { ascending: false }).limit(10),
