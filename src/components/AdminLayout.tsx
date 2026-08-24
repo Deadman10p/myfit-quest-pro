@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { LayoutDashboard, Users, Megaphone, Bell, BarChart3, DollarSign, MessageSquare, ChevronLeft, Menu, X, Dumbbell, UtensilsCrossed, Music } from "lucide-react";
+import { LayoutDashboard, Users, Megaphone, Bell, BarChart3, DollarSign, MessageSquare, ChevronLeft, Menu, X, Dumbbell, UtensilsCrossed, Music, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -11,12 +11,14 @@ const adminNav = [
   { to: "/admin/workouts", icon: Dumbbell, label: "Workouts" },
   { to: "/admin/meals", icon: UtensilsCrossed, label: "Meals" },
   { to: "/admin/music", icon: Music, label: "Music" },
+  { to: "/admin/gyms", icon: MapPin, label: "Gyms" },
   { to: "/admin/announcements", icon: Megaphone, label: "Announcements" },
   { to: "/admin/push", icon: Bell, label: "Push" },
   { to: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { to: "/admin/revenue", icon: DollarSign, label: "Revenue" },
   { to: "/admin/feedback", icon: MessageSquare, label: "Feedback" },
 ];
+
 
 const AdminLayout: React.FC = () => {
   const { user, isAdmin, loading } = useAuth();

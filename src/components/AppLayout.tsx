@@ -4,6 +4,9 @@ import { Home, Dumbbell, UtensilsCrossed, MessageCircle, TrendingUp, Bell, Shiel
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useAuth } from "@/contexts/AuthContext";
+import IntroTour from "@/components/IntroTour";
+import MusicPlayer from "@/components/MusicPlayer";
+
 
 const navItems = [
   { to: "/dashboard", icon: Home, label: "Home" },
@@ -26,7 +29,9 @@ const AppLayout: React.FC = () => {
           Fit<span className="text-primary">AI</span>
         </h1>
         <div className="flex items-center gap-1">
+          <MusicPlayer compact />
           {isAdmin && (
+
             <RouterNavLink to="/admin" className="p-2 rounded-lg hover:bg-secondary touch-target" aria-label="Admin panel">
               <Shield className="w-5 h-5 text-primary" />
             </RouterNavLink>
@@ -42,10 +47,14 @@ const AppLayout: React.FC = () => {
         </div>
       </header>
 
+      {/* Interactive introduction */}
+      <IntroTour />
+
       {/* Content */}
       <main className="flex-1 overflow-y-auto pb-20">
         <Outlet />
       </main>
+
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-lg border-t border-border safe-bottom" role="navigation" aria-label="Main navigation">
