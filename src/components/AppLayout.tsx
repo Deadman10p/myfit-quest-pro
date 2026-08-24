@@ -4,6 +4,9 @@ import { Home, Dumbbell, UtensilsCrossed, MessageCircle, TrendingUp, Bell, Shiel
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/contexts/NotificationContext";
 import { useAuth } from "@/contexts/AuthContext";
+import IntroTour from "@/components/IntroTour";
+import MusicPlayer from "@/components/MusicPlayer";
+
 
 const navItems = [
   { to: "/dashboard", icon: Home, label: "Home" },

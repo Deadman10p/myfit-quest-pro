@@ -33,6 +33,8 @@ import AdminFeedback from "@/pages/admin/AdminFeedback";
 import AdminWorkouts from "@/pages/admin/AdminWorkouts";
 import AdminMeals from "@/pages/admin/AdminMeals";
 import AdminMusic from "@/pages/admin/AdminMusic";
+import AdminGyms from "@/pages/admin/AdminGyms";
+
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +73,8 @@ const AppRoutes = () => {
         <Route path="workouts" element={<AdminWorkouts />} />
         <Route path="meals" element={<AdminMeals />} />
         <Route path="music" element={<AdminMusic />} />
+        <Route path="gyms" element={<AdminGyms />} />
+
         <Route path="announcements" element={<AdminAnnouncements />} />
         <Route path="push" element={<AdminPush />} />
         <Route path="analytics" element={<AdminAnalytics />} />
