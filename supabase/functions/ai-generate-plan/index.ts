@@ -42,6 +42,10 @@ Deno.serve(async (req) => {
       ? `Latest weight: ${metrics[0].weight_kg ?? 'n/a'}kg, body fat: ${metrics[0].body_fat_pct ?? 'n/a'}%.`
       : 'No body metrics logged yet.';
 
+    // Country-specific food research via DuckDuckGo (best-effort, never blocks generation)
+    const foodResearch = profile?.country ? await researchLocalFoods(profile.country) : '';
+
+
     const sys = `You are an adaptive fitness & nutrition coach. Return ONLY JSON:
 {
   "workout": {
